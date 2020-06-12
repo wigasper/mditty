@@ -59,6 +59,8 @@ pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, Str
 
         // write footer
         out_file.write_all(b"```");
+        
+        out_file.flush().unwrap();
     }
 }
 
