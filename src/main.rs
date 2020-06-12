@@ -11,7 +11,8 @@ fn main() {
     let current_dir = env::current_dir().unwrap_or_else(|why| {
         panic!(
             "Could not determine the current working directory: {}. There may not 
-            be sufficient permissions to access the current directory.", why
+            be sufficient permissions to access the current directory.",
+            why
         );
     });
 
