@@ -1,10 +1,11 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
+use std::ffi::OsStr;
 use std::fs::File;
 use std::io::prelude::*;
 use std::io::{BufReader, LineWriter};
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>) {
+pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>, recurse: bool) {
     let mut dirs_to_search: Vec<PathBuf> = vec![input_path.to_path_buf()];
 
     while !dirs_to_search.is_empty() {
@@ -16,7 +17,7 @@ pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>)
 
                 if entry_path.is_file() {
                     file_to_markdown(&entry_path, extension_map);
-                } else if entry_path.is_dir() {
+                } else if entry_path.is_dir() & recurse {
                     dirs_to_search.push(entry_path);
                 }
             }
@@ -24,15 +25,24 @@ pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>)
     }
 }
 
+pub fn get_output_path(input_file_path: &PathBuf) -> PathBuf {
+    let mut out_path = input_file_path.to_owned();
+    out_path.set_extension("md");
+    out_path
+}
+
+pub fn get_file_extension(file_path: &PathBuf) -> &str {
+    let extension = file_path.extension().unwrap_or(OsStr::new(""));
+
+    extension.to_str().unwrap()
+}
+
 pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, String>) {
-    // TODO: handle this better, probably should have its own function
-    let file_extension = file_path.extension().unwrap().to_str().unwrap();
+    let file_extension = get_file_extension(file_path);
 
     if extension_map.contains_key(file_extension) {
         // get output path
-        let mut output_path = file_path.to_owned();
-
-        output_path.set_extension("md");
+        let output_path = get_output_path(file_path);
 
         // create LineWriter for output
         let out_file = File::create(&output_path).unwrap_or_else(|why| {
@@ -42,37 +52,49 @@ pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, Str
 
         // write header
         let header = format!("```{}\n", extension_map.get(file_extension).unwrap());
-        out_file.write_all(header.as_bytes());
+        out_file.write_all(header.as_bytes()).unwrap_or_else(|why| {
+            panic!("Error writing header: {}", why);
+        });
 
         // read in
         let file = File::open(file_path).unwrap_or_else(|why| {
             panic!("Could not open {}: {}", file_path.to_str().unwrap(), why);
         });
 
-        let mut buf_reader = BufReader::new(file);
+        let buf_reader = BufReader::new(file);
 
-        // TODO: error handling here
         for line in buf_reader.lines() {
-            out_file.write_all(line.unwrap().as_bytes()).unwrap();
-            out_file.write_all(b"\n").unwrap();
+            out_file
+                .write_all(line.unwrap().as_bytes())
+                .unwrap_or_else(|why| {
+                    panic!("Could not write line from bufreader: {}", why);
+                });
+            out_file.write_all(b"\n").unwrap_or_else(|why| {
+                panic!("Could not write newline after line: {}", why);
+            });
         }
 
         // write footer
-        out_file.write_all(b"```");
-        
+        out_file.write_all(b"```").unwrap_or_else(|why| {
+            panic!("Error writing footer: {}", why);
+        });
+
         out_file.flush().unwrap();
     }
 }
 
-pub fn markdownify(mut input_path: PathBuf) {
+pub fn markdownify(mut input_path: PathBuf, recurse: bool) {
     input_path = input_path.canonicalize().unwrap();
 
     let extension_map = get_map();
+    
+    // TODO: throw in some checking here to ensure this doesn't get
+    // run on root
 
     if input_path.is_file() {
         file_to_markdown(&input_path, &extension_map);
     } else if input_path.is_dir() {
-        find_files(&input_path, &extension_map);
+        find_files(&input_path, &extension_map, recurse);
     } else {
         // something is wrong??? is this condition possible?
     }
