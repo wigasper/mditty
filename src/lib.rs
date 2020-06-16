@@ -30,6 +30,16 @@ mod tests {
     }
 
     #[test]
+    fn test_sanity_check_0() {
+        assert!(sanity_check(&PathBuf::from("/home/user")));
+    }
+
+    #[test]
+    fn test_sanity_check_1() {
+        assert!(!sanity_check(&PathBuf::from("/")));
+    }
+
+    #[test]
     fn t1() {
         let map = get_map();
         let file_path = PathBuf::from("test.rs");
@@ -43,13 +53,5 @@ mod tests {
         p.set_extension("");
         assert_eq!(Path::new("/this/is/a/test"), p.as_path());
     }
-    //    #[test]
-    //    fn test_get_extensions() {
-    //        let ext_map = get_map();
-    //        let extensions: HashSet<String> = get_extensions();
-    //
-    //       for key in ext_map.keys() {
-    //           assert!(extensions.contains(&key.to_owned()));
-    //        }
-    //    }
+
 }

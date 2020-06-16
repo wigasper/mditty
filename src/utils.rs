@@ -83,17 +83,30 @@ pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, Str
     }
 }
 
+pub fn sanity_check(input_path: &PathBuf) -> bool {
+    let mut sane = false;
+
+    if input_path == &PathBuf::from("/") {
+        println!("Warning: mditty should not be run on root directory");
+        println!("If you actually want to do this open an issue and 
+                 I will add some logic to allow for this");
+    } else {
+        sane = true;
+    }
+    
+    sane
+}
+
 pub fn markdownify(mut input_path: PathBuf, recurse: bool) {
     input_path = input_path.canonicalize().unwrap();
 
     let extension_map = get_map();
     
-    // TODO: throw in some checking here to ensure this doesn't get
-    // run on root
+    let sane = sanity_check(&input_path);
 
-    if input_path.is_file() {
+    if input_path.is_file() & sane {
         file_to_markdown(&input_path, &extension_map);
-    } else if input_path.is_dir() {
+    } else if input_path.is_dir() & sane {
         find_files(&input_path, &extension_map, recurse);
     } else {
         // something is wrong??? is this condition possible?
