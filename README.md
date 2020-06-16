@@ -1,6 +1,6 @@
 # mditty
 mditty is a fun little utility that, when passed either a file or a directory as input, will change that file or any files in the directory (and any subdirectories, if the recursive flag is set) into markdown if the file or files end in a handful of common extensions.
-It does this simply by adding backticks and an accepted language identifier as the first line and backticks as the last line.
+It does this simply by adding backticks and an accepted language identifier as the first line and backticks as the last line of a new file with the same name (but with a `.md` extension).
 
 ## Why would you do this?
 I made this to assist in an automated documentation generation process. Basically, a bunch of scripts go into folders and I want them all turned into markdown with syntax highlighting.
