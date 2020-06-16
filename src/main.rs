@@ -23,8 +23,9 @@ fn main() {
                 .long_help(
                     "Input path, can be a file or directory. If not 
 provided, the current working directory will be 
-used. Directories will be searched recursively and 
-any pertinent files found will be converted to markdown.",
+used. If the recursive flag is set, then directories 
+will be searched recursively and any pertinent files 
+found will be converted to markdown.",
                 ),
         )
         .arg(
