@@ -16,7 +16,10 @@ pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>,
                 let entry_path = entry.path();
 
                 if entry_path.is_file() {
-                    file_to_markdown(&entry_path, extension_map);
+                    let putative_md_path = get_output_path(&entry_path);
+                    if !putative_md_path.exists() {
+                        file_to_markdown(&entry_path, extension_map);
+                    }
                 } else if entry_path.is_dir() & recurse {
                     dirs_to_search.push(entry_path);
                 }
