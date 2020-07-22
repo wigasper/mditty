@@ -136,6 +136,7 @@ pub fn get_map() -> HashMap<String, String> {
         ("slurm", "bash"),
         ("sql", "sql"),
         ("r", "r"),
+        ("R", "r"),
         ("rs", "rust"),
         ("tex", "latex"),
     ];
