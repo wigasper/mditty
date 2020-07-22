@@ -5,6 +5,7 @@ use std::io::prelude::*;
 use std::io::{BufReader, LineWriter};
 use std::path::PathBuf;
 
+// TODO: add logic to ignore directories, should be taken as an argument
 pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>, recurse: bool) {
     let mut dirs_to_search: Vec<PathBuf> = vec![input_path.to_path_buf()];
 
