@@ -44,12 +44,9 @@ pub fn get_file_extension(file_path: &PathBuf) -> &str {
 pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, String>) -> PathBuf {
     let file_extension = get_file_extension(file_path);
 
-    let output_path = PathBuf::new();
+    let output_path = get_output_path(file_path);
 
     if extension_map.contains_key(file_extension) {
-        // get output path
-        let output_path = get_output_path(file_path);
-        
         if !output_path.exists() {
             // create LineWriter for output
             let out_file = File::create(&output_path).unwrap_or_else(|why| {
@@ -98,12 +95,14 @@ pub fn sanity_check(input_path: &PathBuf) -> bool {
 
     if input_path == &PathBuf::from("/") {
         println!("Warning: mditty should not be run on root directory");
-        println!("If you actually want to do this open an issue and 
-                 I will add some logic to allow for this");
+        println!(
+            "If you actually want to do this open an issue and 
+                 I will add some logic to allow for this"
+        );
     } else {
         sane = true;
     }
-    
+
     sane
 }
 
@@ -111,7 +110,7 @@ pub fn markdownify(mut input_path: PathBuf, recurse: bool) {
     input_path = input_path.canonicalize().unwrap();
 
     let extension_map = get_ext_map();
-    
+
     let sane = sanity_check(&input_path);
 
     if input_path.is_file() & sane {
