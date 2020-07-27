@@ -41,7 +41,7 @@ mod tests {
 
     #[test]
     fn t1() {
-        let map = get_map();
+        let map = get_ext_map();
         let file_path = PathBuf::from("test.rs");
         let file_extension = file_path.extension().unwrap().to_str().unwrap();
         assert!(map.contains_key(file_extension));

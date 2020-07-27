@@ -48,7 +48,7 @@ that can be converted to markdown will be.",
         .get_matches();
 
     if matches.is_present("extensions") {
-        let temp_map = mditty::utils::get_map();
+        let temp_map = mditty::utils::get_ext_map();
 
         for key in temp_map.keys() {
             println!("{}", key);

@@ -19,7 +19,7 @@ pub fn find_files(input_path: &PathBuf, extension_map: &HashMap<String, String>,
                 if entry_path.is_file() {
                     let putative_md_path = get_output_path(&entry_path);
                     if !putative_md_path.exists() {
-                        file_to_markdown(&entry_path, extension_map);
+                        let _ = file_to_markdown(&entry_path, extension_map);
                     }
                 } else if entry_path.is_dir() & recurse {
                     dirs_to_search.push(entry_path);
@@ -41,50 +41,56 @@ pub fn get_file_extension(file_path: &PathBuf) -> &str {
     extension.to_str().unwrap()
 }
 
-pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, String>) {
+pub fn file_to_markdown(file_path: &PathBuf, extension_map: &HashMap<String, String>) -> PathBuf {
     let file_extension = get_file_extension(file_path);
+
+    let output_path = PathBuf::new();
 
     if extension_map.contains_key(file_extension) {
         // get output path
         let output_path = get_output_path(file_path);
-
-        // create LineWriter for output
-        let out_file = File::create(&output_path).unwrap_or_else(|why| {
-            panic!("Could not create outfile: {}", why);
-        });
-        let mut out_file = LineWriter::new(out_file);
-
-        // write header
-        let header = format!("```{}\n", extension_map.get(file_extension).unwrap());
-        out_file.write_all(header.as_bytes()).unwrap_or_else(|why| {
-            panic!("Error writing header: {}", why);
-        });
-
-        // read in
-        let file = File::open(file_path).unwrap_or_else(|why| {
-            panic!("Could not open {}: {}", file_path.to_str().unwrap(), why);
-        });
-
-        let buf_reader = BufReader::new(file);
-
-        for line in buf_reader.lines() {
-            out_file
-                .write_all(line.unwrap().as_bytes())
-                .unwrap_or_else(|why| {
-                    panic!("Could not write line from bufreader: {}", why);
-                });
-            out_file.write_all(b"\n").unwrap_or_else(|why| {
-                panic!("Could not write newline after line: {}", why);
+        
+        if !output_path.exists() {
+            // create LineWriter for output
+            let out_file = File::create(&output_path).unwrap_or_else(|why| {
+                panic!("Could not create outfile: {}", why);
             });
+            let mut out_file = LineWriter::new(out_file);
+
+            // write header
+            let header = format!("```{}\n", extension_map.get(file_extension).unwrap());
+            out_file.write_all(header.as_bytes()).unwrap_or_else(|why| {
+                panic!("Error writing header: {}", why);
+            });
+
+            // read in
+            let file = File::open(file_path).unwrap_or_else(|why| {
+                panic!("Could not open {}: {}", file_path.to_str().unwrap(), why);
+            });
+
+            let buf_reader = BufReader::new(file);
+
+            for line in buf_reader.lines() {
+                out_file
+                    .write_all(line.unwrap().as_bytes())
+                    .unwrap_or_else(|why| {
+                        panic!("Could not write line from bufreader: {}", why);
+                    });
+                out_file.write_all(b"\n").unwrap_or_else(|why| {
+                    panic!("Could not write newline after line: {}", why);
+                });
+            }
+
+            // write footer
+            out_file.write_all(b"```").unwrap_or_else(|why| {
+                panic!("Error writing footer: {}", why);
+            });
+
+            out_file.flush().unwrap();
         }
-
-        // write footer
-        out_file.write_all(b"```").unwrap_or_else(|why| {
-            panic!("Error writing footer: {}", why);
-        });
-
-        out_file.flush().unwrap();
     }
+
+    output_path
 }
 
 pub fn sanity_check(input_path: &PathBuf) -> bool {
@@ -104,7 +110,7 @@ pub fn sanity_check(input_path: &PathBuf) -> bool {
 pub fn markdownify(mut input_path: PathBuf, recurse: bool) {
     input_path = input_path.canonicalize().unwrap();
 
-    let extension_map = get_map();
+    let extension_map = get_ext_map();
     
     let sane = sanity_check(&input_path);
 
@@ -117,7 +123,7 @@ pub fn markdownify(mut input_path: PathBuf, recurse: bool) {
     }
 }
 
-pub fn get_map() -> HashMap<String, String> {
+pub fn get_ext_map() -> HashMap<String, String> {
     let mut map_out = HashMap::new();
     let extensions = vec![
         ("awk", "awk"),
